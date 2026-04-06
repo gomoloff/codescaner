@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MauiAppCross_v2.MainPage"
+             x:Name="RootPage"
+             Title="Сканер решения">
+
+    <ContentPage.Resources>
+        <!-- Убираем скругления и задаём базовый вид для всех кнопок -->
+        <Style TargetType="Button">
+            <Setter Property="CornerRadius" Value="0" />
+            <Setter Property="Padding" Value="12,8" />
+            <Setter Property="BackgroundColor" Value="#1976D2" />
+            <Setter Property="TextColor" Value="White" />
+        </Style>
+
+        <!-- Вторичные кнопки (серые) -->
+        <Style x:Key="SecondaryButton" TargetType="Button">
+            <Setter Property="CornerRadius" Value="0" />
+            <Setter Property="Padding" Value="12,8" />
+            <Setter Property="BackgroundColor" Value="#E0E0E0" />
+            <Setter Property="TextColor" Value="Black" />
+        </Style>
+
+        <!-- Кнопка основного действия (зелёная) -->
+        <Style x:Key="PrimaryAction" TargetType="Button">
+            <Setter Property="CornerRadius" Value="0" />
+            <Setter Property="Padding" Value="12,8" />
+            <Setter Property="BackgroundColor" Value="#2E7D32" />
+            <Setter Property="TextColor" Value="White" />
+        </Style>
+
+        <!-- Контейнер секции -->
+        <Style x:Key="SectionCard" TargetType="VerticalStackLayout">
+            <Setter Property="Spacing" Value="10" />
+            <Setter Property="Padding" Value="12" />
+            <Setter Property="BackgroundColor" Value="#FAFAFA" />
+        </Style>
+
+        <!-- Заголовок секции -->
+        <Style x:Key="SectionHeader" TargetType="Label">
+            <Setter Property="FontAttributes" Value="Bold" />
+            <Setter Property="FontSize" Value="16" />
+            <Setter Property="TextColor" Value="#333" />
+        </Style>
+    </ContentPage.Resources>
+
+    <ScrollView>
+        <Grid x:Name="RootGrid"
+              Padding="16"
+              ColumnSpacing="16"
+              RowSpacing="16">
+            <!-- По умолчанию: две колонки, одна строка.
+                 В узком режиме код‑бихайнд переключит на одну колонку и две строки -->
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <!-- Левая колонка -->
+            <VerticalStackLayout x:Name="LeftPane" Grid.Row="0" Grid.Column="0" Spacing="16">
+
+                <!-- Исходные папки -->
+                <VerticalStackLayout Style="{StaticResource SectionCard}">
+                    <Label Text="Исходные папки" Style="{StaticResource SectionHeader}" />
+                    <CollectionView ItemsSource="{Binding SourceFoldersList}" HeightRequest="140">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate>
+                                <Grid ColumnDefinitions="*,Auto" Padding="4">
+                                    <Label Grid.Column="0" Text="{Binding .}" LineBreakMode="NoWrap" />
+                                    <Button Grid.Column="1"
+                            Text="Удалить"
+                            Style="{StaticResource SecondaryButton}"
+                            Command="{Binding Source={x:Reference RootPage}, Path=RemoveSourceFolderCommand}"
+                            CommandParameter="{Binding .}" />
+                                </Grid>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+
+                    <!-- Кнопки действий -->
+                    <HorizontalStackLayout Spacing="8">
+                        <Button Text="Добавить папку"
+                Clicked="OnAddSourceFolderClicked" />
+                        <Button Text="Очистить список"
+                Style="{StaticResource SecondaryButton}"
+                Clicked="OnClearSourceFoldersClicked" />
+                    </HorizontalStackLayout>
+                </VerticalStackLayout>
+                
+                <!-- Фильтры -->
+                <VerticalStackLayout Style="{StaticResource SectionCard}">
+                    <Label Text="Фильтры" Style="{StaticResource SectionHeader}" />
+                    <Grid ColumnDefinitions="Auto,180,Auto,200" ColumnSpacing="10">
+                        <Label Grid.Column="0" Text="Режим:" VerticalTextAlignment="Center" />
+                        <Picker x:Name="ExtensionModePicker"
+                                Grid.Column="1"
+                                SelectedIndexChanged="OnExtensionModeChanged">
+                            <Picker.Items>
+                                <x:String>Preset</x:String>
+                                <x:String>Custom</x:String>
+                                <x:String>AllFiles</x:String>
+                            </Picker.Items>
+                        </Picker>
+
+                        <Label Grid.Column="2" Text="Пресет:" VerticalTextAlignment="Center" />
+                        <Picker x:Name="PresetPicker" Grid.Column="3">
+                            <Picker.Items>
+                                <x:String>AllSupported</x:String>
+                                <x:String>WebProject</x:String>
+                                <x:String>CSharpProject</x:String>
+                                <x:String>PythonProject</x:String>
+                                <x:String>CppProject</x:String>
+                            </Picker.Items>
+                        </Picker>
+                    </Grid>
+                </VerticalStackLayout>
+
+                <!-- Маски имён -->
+                <VerticalStackLayout Style="{StaticResource SectionCard}">
+                    <Label Text="Маски имён файлов" Style="{StaticResource SectionHeader}" />
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                        <Entry x:Name="MaskEntry" Placeholder="например: *.cs, *Test*.cs" Grid.Column="0" />
+                        <Button Text="Добавить" Grid.Column="1" Clicked="OnAddMaskClicked" />
+                    </Grid>
+                    <CollectionView ItemsSource="{Binding FileNameMasksList}" HeightRequest="120">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate>
+                                <Grid ColumnDefinitions="*,Auto" Padding="4">
+                                    <Label Grid.Column="0" Text="{Binding .}" />
+                                    <Button Grid.Column="1"
+                                            Text="Удалить"
+                                            Style="{StaticResource SecondaryButton}"
+                                            Command="{Binding Source={x:Reference RootPage}, Path=RemoveMaskCommand}"
+                                            CommandParameter="{Binding .}" />
+                                </Grid>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                </VerticalStackLayout>
+
+            </VerticalStackLayout>
+
+            <!-- Правая колонка -->
+            <VerticalStackLayout x:Name="RightPane" Grid.Row="0" Grid.Column="1" Spacing="16">
+
+                <!-- Выходная папка -->
+                <VerticalStackLayout Style="{StaticResource SectionCard}">
+                    <Label Text="Выходная папка" Style="{StaticResource SectionHeader}" />
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                        <Entry x:Name="OutputFolderEntry" Grid.Column="0" HorizontalOptions="FillAndExpand" />
+                        <Button Text="Выбрать..." Grid.Column="1" Clicked="OnPickOutputFolderClicked" />
+                    </Grid>
+                </VerticalStackLayout>
+
+                <!-- Пользовательские расширения -->
+                <VerticalStackLayout Style="{StaticResource SectionCard}">
+                    <Label Text="Пользовательские расширения (для режима Custom)" Style="{StaticResource SectionHeader}" />
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                        <Entry x:Name="ExtensionEntry" Placeholder="например: *.xaml, *.md" Grid.Column="0" />
+                        <Button Text="Добавить" Grid.Column="1" Clicked="OnAddExtensionClicked" />
+                    </Grid>
+                    <CollectionView ItemsSource="{Binding CustomExtensionsList}" HeightRequest="120">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate>
+                                <Grid ColumnDefinitions="*,Auto" Padding="4">
+                                    <Label Grid.Column="0" Text="{Binding .}" />
+                                    <Button Grid.Column="1"
+                                            Text="Удалить"
+                                            Style="{StaticResource SecondaryButton}"
+                                            Command="{Binding Source={x:Reference RootPage}, Path=RemoveExtensionCommand}"
+                                            CommandParameter="{Binding .}" />
+                                </Grid>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                </VerticalStackLayout>
+
+                <!-- Исключаемые папки -->
+                <VerticalStackLayout Style="{StaticResource SectionCard}">
+                    <Label Text="Исключаемые папки" Style="{StaticResource SectionHeader}" />
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                        <Entry x:Name="ExcludeEntry" Placeholder="например: bin, obj, node_modules" Grid.Column="0" />
+                        <Button Text="Добавить" Grid.Column="1" Clicked="OnAddExcludeFolderClicked" />
+                    </Grid>
+                    <CollectionView ItemsSource="{Binding ExcludeFoldersList}" HeightRequest="120">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate>
+                                <Grid ColumnDefinitions="*,Auto" Padding="4">
+                                    <Label Grid.Column="0" Text="{Binding .}" />
+                                    <Button Grid.Column="1"
+                                            Text="Удалить"
+                                            Style="{StaticResource SecondaryButton}"
+                                            Command="{Binding Source={x:Reference RootPage}, Path=RemoveExcludeCommand}"
+                                            CommandParameter="{Binding .}" />
+                                </Grid>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                </VerticalStackLayout>
+
+                <!-- Настройки -->
+                <VerticalStackLayout Style="{StaticResource SectionCard}">
+                    <Label Text="Настройки" Style="{StaticResource SectionHeader}" />
+                    <Grid ColumnDefinitions="Auto,120,Auto,120,Auto,Auto,Auto,Auto"
+                          ColumnSpacing="16">
+                        <Label Grid.Column="0" Text="Макс. размер (MB)" VerticalTextAlignment="Center" />
+                        <Entry x:Name="MaxSizeEntry" Grid.Column="1" Keyboard="Numeric" Text="25" />
+
+                        <Label Grid.Column="2" Text="Исключать бинарные" VerticalTextAlignment="Center" />
+                        <Switch x:Name="ExcludeBinarySwitch" Grid.Column="3" IsToggled="True" />
+
+                        <Label Grid.Column="4" Text="Дерево каталогов" VerticalTextAlignment="Center" />
+                        <Switch x:Name="IncludeTreeSwitch" Grid.Column="5" IsToggled="True" />
+
+                        <Label Grid.Column="6" Text="Полные пути" VerticalTextAlignment="Center" />
+                        <Switch x:Name="AbsolutePathsSwitch" Grid.Column="7" IsToggled="True" />
+                    </Grid>
+                </VerticalStackLayout>
+
+                <!-- Запуск и лог -->
+                <VerticalStackLayout Style="{StaticResource SectionCard}">
+                    <Button Text="Запустить анализ" Style="{StaticResource PrimaryAction}" Clicked="OnStartAnalysisClicked" />
+                    <Label x:Name="StatusLabel" TextColor="#333" />
+                    <Editor x:Name="LogEditor" HeightRequest="220" IsReadOnly="True" />
+                </VerticalStackLayout>
+
+            </VerticalStackLayout>
+        </Grid>
+    </ScrollView>
+</ContentPage>

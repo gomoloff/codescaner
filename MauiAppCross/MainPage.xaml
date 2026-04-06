@@ -1,0 +1,70 @@
+<!-- MauiAppCross/MainPage.xaml -->
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MauiAppCross.MainPage"
+             Title="Анализатор кода">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="15">
+            <!-- Название -->
+            <Label Text="Название конфигурации" FontAttributes="Bold" />
+            <Entry x:Name="NameEntry" Placeholder="Введите название" />
+
+            <!-- Папки для анализа -->
+            <Label Text="Папки для анализа" FontAttributes="Bold" />
+            <CollectionView x:Name="SourceFoldersList" HeightRequest="100" />
+            <Button Text="➕ Добавить папку" Clicked="OnAddSourceFolderClicked" />
+
+            <!-- Исключения -->
+            <Label Text="Исключаемые папки" FontAttributes="Bold" />
+            <HorizontalStackLayout Spacing="10">
+                <Entry x:Name="NewExcludeEntry" Placeholder="bin, obj, *test*" />
+                <Button Text="➕" Clicked="OnAddExcludeClicked" WidthRequest="50" />
+            </HorizontalStackLayout>
+            <CollectionView x:Name="ExcludeFoldersList" HeightRequest="80" />
+
+            <!-- Режим расширений -->
+            <Label Text="Режим расширений" FontAttributes="Bold" />
+            <Picker x:Name="ModePicker" SelectedIndexChanged="OnModeChanged">
+                <Picker.ItemsSource>
+                    <x:Array Type="{x:Type x:String}">
+                        <x:String>Предустановки</x:String>
+                        <x:String>Свой список</x:String>
+                        <x:String>Все файлы</x:String>
+                    </x:Array>
+                </Picker.ItemsSource>
+            </Picker>
+
+            <!-- Предустановка -->
+            <Label Text="Предустановка" FontAttributes="Bold" x:Name="PresetLabel" />
+            <Picker x:Name="PresetPicker" x:Name="PresetPicker">
+                <Picker.ItemsSource>
+                    <x:Array Type="{x:Type x:String}">
+                        <x:String>Все поддерживаемые</x:String>
+                        <x:String>Веб-проект</x:String>
+                        <x:String>C# проект</x:String>
+                        <x:String>Python проект</x:String>
+                        <x:String>C++ проект</x:String>
+                    </x:Array>
+                </Picker.ItemsSource>
+            </Picker>
+
+            <!-- Выходная папка -->
+            <Label Text="Выходная папка" FontAttributes="Bold" />
+            <HorizontalStackLayout Spacing="10">
+                <Entry x:Name="OutputFolderEntry" Placeholder="/путь/к/отчёту" />
+                <Button Text="📁" Clicked="OnSelectOutputFolderClicked" WidthRequest="50" />
+            </HorizontalStackLayout>
+
+            <!-- Макс. размер -->
+            <Label Text="Макс. размер части (МБ)" FontAttributes="Bold" />
+            <Slider x:Name="MaxSizeSlider" Minimum="1" Maximum="1000" Value="25" />
+            <Label x:Name="MaxSizeLabel" Text="Текущий: 25 МБ" />
+
+            <!-- Кнопки -->
+            <Button Text="▶ Запустить анализ" Clicked="OnStartAnalysisClicked" BackgroundColor="Green" TextColor="White" />
+            <Button Text="📂 Открыть результаты" Clicked="OnOpenResultsClicked" />
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>
