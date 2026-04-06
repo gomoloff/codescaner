@@ -170,6 +170,11 @@ public class AnalyzerEngine
     }
 
     // Объединение масок и расширений
+    /// <summary>
+    /// Формирует список масок файлов для поиска на основе конфигурации.
+    /// </summary>
+    /// <param name="config">Конфигурация анализа.</param>
+    /// <returns>Список масок файлов (например, *.cs, *.js).</returns>
     private List<string> GetFileMasks(AnalyzerConfig config)
     {
         var masks = new List<string>();
@@ -191,6 +196,14 @@ public class AnalyzerEngine
     // Удаляем старый метод ShouldExcludePath и используем другую логику
 
     // Вместо использования ShouldExcludePath внутри лямбды, изменим EnumerateFilesTopDown:
+    /// <summary>
+    /// Выполняет обход директорий сверху вниз (Top-Down) с фильтрацией по маскам файлов и исключаемым папкам.
+    /// </summary>
+    /// <param name="root">Корневая директория для обхода.</param>
+    /// <param name="masks">Маски файлов для включения в результат.</param>
+    /// <param name="excludeFolders">Список имён папок для исключения.</param>
+    /// <param name="excludedByFolder">Счётчик исключённых папок (передаётся по ссылке).</param>
+    /// <returns>Коллекция файлов, соответствующих критериям поиска.</returns>
     private IEnumerable<FileInfo> EnumerateFilesTopDown(
         string root,
         IEnumerable<string> masks,
@@ -244,8 +257,15 @@ public class AnalyzerEngine
     }
 
     // Глубокий обход всего дерева каталогов (DFS без рекурсии)
-    // - уважает excludeFolders по имени на любом уровне
-    // - пропускает reparse points (символические ссылки), чтобы избежать циклов
+    /// <summary>
+    /// Выполняет глубокий обход всего дерева каталогов (DFS без рекурсии).
+    /// Учитывает excludeFolders по имени на любом уровне и пропускает reparse points (символические ссылки) для избежания циклов.
+    /// </summary>
+    /// <param name="root">Корневая директория для обхода.</param>
+    /// <param name="masks">Маски файлов для включения в результат.</param>
+    /// <param name="excludeFolders">Список имён папок для исключения.</param>
+    /// <param name="excludedByFolder">Выходной параметр: количество исключённых папок.</param>
+    /// <returns>Коллекция файлов, соответствующих критериям поиска.</returns>
     private IEnumerable<FileInfo> EnumerateFilesDeep(
         string root,
         IEnumerable<string> masks,
@@ -310,7 +330,13 @@ public class AnalyzerEngine
         return results;
     }
 
-    // Масочное сравнение: поддержка * и ?
+    /// <summary>
+    /// Выполняет масочное сравнение имени файла со списком масок.
+    /// Поддерживает wildcard-символы: * (любое количество символов) и ? (один символ).
+    /// </summary>
+    /// <param name="fileName">Имя файла для проверки.</param>
+    /// <param name="masks">Список масок для сравнения.</param>
+    /// <returns>True, если имя файла соответствует хотя бы одной маске; иначе False.</returns>
     private static bool MatchesAnyMask(string fileName, IEnumerable<string> masks)
     {
         foreach (var mask in masks)
@@ -326,6 +352,16 @@ public class AnalyzerEngine
     }
 
 
+    /// <summary>
+    /// Создаёт заголовок для части отчёта в зависимости от стиля разделителя.
+    /// </summary>
+    /// <param name="config">Конфигурация анализа.</param>
+    /// <param name="timestamp">Временная метка запуска анализа.</param>
+    /// <param name="partNumber">Номер текущей части.</param>
+    /// <param name="totalFiles">Общее количество файлов в отчёте.</param>
+    /// <param name="directoryStructure">Текстовое представление структуры каталогов.</param>
+    /// <param name="isContinuation">Флаг, указывающий, является ли часть продолжением (не первой).</param>
+    /// <returns>Список строк заголовка.</returns>
     private List<string> CreateHeader(AnalyzerConfig config, string timestamp, int partNumber, int totalFiles, string directoryStructure, bool isContinuation = false)
     {
         var header = new List<string>();
@@ -393,6 +429,13 @@ public class AnalyzerEngine
         return header;
     }
 
+    /// <summary>
+    /// Создаёт секцию отчёта для одного файла в зависимости от стиля разделителя.
+    /// </summary>
+    /// <param name="file">Информация о файле.</param>
+    /// <param name="content">Содержимое файла.</param>
+    /// <param name="config">Конфигурация анализа.</param>
+    /// <returns>Список строк, представляющих секцию файла.</returns>
     private List<string> CreateFileSection(FileInfo file, string content, AnalyzerConfig config)
     {
         var section = new List<string>();
@@ -482,6 +525,14 @@ public class AnalyzerEngine
 
     #region Private Helpers
 
+    /// <summary>
+    /// Асинхронно читает содержимое файла с автоматическим определением кодировки.
+    /// </summary>
+    /// <param name="file">Информация о файле.</param>
+    /// <param name="config">Конфигурация анализа.</param>
+    /// <param name="encoding">Целевая кодировка для вывода.</param>
+    /// <param name="progress">Объект для отправки сообщений о прогрессе.</param>
+    /// <returns>Содержимое файла в виде строки или сообщение об ошибке.</returns>
     private async Task<string> ProcessFileAsync(FileInfo file, AnalyzerConfig config, Encoding encoding, IProgress<string> progress)
     {
         try
@@ -504,6 +555,13 @@ public class AnalyzerEngine
         }
     }
 
+    /// <summary>
+    /// Формирует текстовое представление структуры каталогов для всех исходных папок.
+    /// </summary>
+    /// <param name="sourceFolders">Список корневых папок для анализа.</param>
+    /// <param name="excludeFolders">Список имён папок для исключения.</param>
+    /// <param name="progress">Объект для отправки сообщений о прогрессе (не используется в данном методе).</param>
+    /// <returns>Строка с представлением структуры каталогов.</returns>
     private string BuildDirectoryStructure(List<string> sourceFolders, List<string> excludeFolders, IProgress<string> progress)
     {
         var sb = new StringBuilder();
@@ -521,6 +579,12 @@ public class AnalyzerEngine
         return sb.ToString();
     }
 
+    /// <summary>
+    /// Генерирует строки для представления дерева каталогов в итеративном стиле.
+    /// </summary>
+    /// <param name="root">Корневая директория для обхода.</param>
+    /// <param name="excludeFolders">Список имён папок для исключения.</param>
+    /// <returns>Последовательность строк, представляющих дерево каталогов.</returns>
     private IEnumerable<string> EnumerateDirectoryTreeLines(string root, List<string> excludeFolders)
     {
         var stack = new Stack<(string dir, int depth)>();
@@ -626,6 +690,14 @@ public class AnalyzerEngine
         return result;
     }
 
+    /// <summary>
+    /// Создаёт индексный файл (Markdown) со сводной информацией о результате анализа.
+    /// </summary>
+    /// <param name="config">Конфигурация анализа.</param>
+    /// <param name="timestamp">Временная метка запуска анализа.</param>
+    /// <param name="createdFiles">Список путей к созданным файлам отчёта.</param>
+    /// <param name="totalSize">Общий размер всех созданных файлов в байтах.</param>
+    /// <returns>Содержимое индексного файла в виде строки.</returns>
     private string CreateIndexFile(AnalyzerConfig config, string timestamp, List<string> createdFiles, long totalSize)
     {
         var index = new List<string>
@@ -693,6 +765,11 @@ public class AnalyzerEngine
         return string.Join(Environment.NewLine, index);
     }
 
+    /// <summary>
+    /// Определяет список расширений файлов для поиска на основе режима и настроек конфигурации.
+    /// </summary>
+    /// <param name="config">Конфигурация анализа.</param>
+    /// <returns>Список масок расширений (например, *.cs, *.js).</returns>
     private List<string> GetExtensionsToSearch(AnalyzerConfig config)
     {
         if (config.ExtensionMode == ExtensionMode.AllFiles)
